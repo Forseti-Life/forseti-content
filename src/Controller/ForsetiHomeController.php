@@ -77,7 +77,7 @@ class ForsetiHomeController extends ControllerBase {
               
               <div class="card card-forseti mb-4 p-4">
                 <h3 class="text-cyan mb-3">
-                  <a href="/jobhunter" class="text-cyan">Job Hunter</a> - Stop AI Systems from Wasting Your Time
+                  <a href="/contact" class="text-cyan">Job Hunter</a> - Stop AI Systems from Wasting Your Time
                 </h3>
                 <p class="lead mb-3">Avoid the AI resume screening chaos for both employers and job hunters!</p>
                 
@@ -94,7 +94,7 @@ class ForsetiHomeController extends ControllerBase {
                 </div>
                 
                 <div class="text-center mt-3">
-                  <a href="/jobhunter" class="btn btn-primary">Access Job Hunter</a>
+                  <a href="/contact" class="btn btn-primary">Ask About Job Hunter</a>
                 </div>
               </div>
               

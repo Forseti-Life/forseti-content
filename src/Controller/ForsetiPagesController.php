@@ -176,7 +176,7 @@ class ForsetiPagesController extends ControllerBase {
       ],
       '#cta_buttons' => [
         ['url' => '/contact', 'text' => $this->t('Express Interest in Membership'), 'style' => 'primary'],
-        ['url' => '/jobhunter', 'text' => $this->t('Try Our Services'), 'style' => 'outline-primary'],
+        ['url' => '/contact', 'text' => $this->t('Ask About Our Services'), 'style' => 'outline-primary'],
       ],
       '#cache' => [
         'max-age' => 3600,
@@ -210,22 +210,22 @@ class ForsetiPagesController extends ControllerBase {
       '#why_join_title' => $this->t('Why Join?'),
       '#benefits' => [
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Stay Informed'),
           'description' => $this->t('Get notified when you enter areas with elevated safety concerns based on your current geographic location and situational context, plus receive weekly safety summaries.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Connect with Neighbors'),
           'description' => $this->t('Join neighborhood watch groups, coordinate safety efforts, and build stronger community bonds.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Make an Impact'),
           'description' => $this->t('Report incidents, validate AI predictions, and contribute to the safety intelligence that protects your community.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Learn & Grow'),
           'description' => $this->t('Access safety resources, attend community events, and participate in safety awareness programs.'),
         ],
@@ -281,7 +281,7 @@ class ForsetiPagesController extends ControllerBase {
         'description' => $this->t('Forseti Mobile brings the power of AI monitoring directly to your smartphone. Get notified when you enter areas with elevated safety concerns, access location-based safety information with real-time crime data, and create your account to access personalized features.'),
       ],
       '#app_display' => [
-        'logo' => '/themes/custom/forseti_content/images/logos/originals/forseti_safe.png',
+        'logo' => '/themes/custom/forseti/images/logos/originals/forseti_safe.png',
         'android_icon' => '<i class="fab fa-android fa-2x text-success"></i>',
         'ios_icon' => '<i class="fab fa-apple fa-2x text-muted"></i>',
         'status' => $this->t('Beta v1.0.2 Available'),
@@ -290,37 +290,37 @@ class ForsetiPagesController extends ControllerBase {
       '#features_title' => $this->t('Current Features'),
       '#features' => [
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('User Accounts & Authentication'),
           'description' => $this->t('Create your account and login with secure production authentication. Access personalized safety features.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Location-Based Alerts'),
           'description' => $this->t('Automatic notifications when you enter high-risk areas or when incidents occur near your location.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_energized.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_energized.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Emergency SOS'),
           'description' => $this->t('One-touch access to emergency services with automatic location sharing and emergency contact notifications.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Interactive Maps'),
           'description' => $this->t('View real-time crime incidents, safety zones, and navigate the safest routes to your destination.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Incident Reporting'),
           'description' => $this->t('Quickly report suspicious activity or incidents with photos, descriptions, and automatic GPS tagging.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_whole.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_whole.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Check-In Feature'),
           'description' => $this->t('Let friends and family know you\'re safe with automatic check-ins and location sharing.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Offline Resources'),
           'description' => $this->t('Access safety tips, emergency contacts, and critical information even without an internet connection.'),
         ],
@@ -414,22 +414,22 @@ class ForsetiPagesController extends ControllerBase {
       ],
       '#security_measures' => [
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Encryption'),
           'description' => $this->t('All data is encrypted in transit (TLS 1.3) and at rest (AES-256).'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Authentication'),
           'description' => $this->t('Multi-factor authentication and secure password policies protect member accounts.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_free.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_free.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Access Controls'),
           'description' => $this->t('Strict role-based access with audit logging ensures data security.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Regular Audits'),
           'description' => $this->t('Third-party security audits and penetration testing maintain our security standards.'),
         ],
@@ -457,7 +457,7 @@ class ForsetiPagesController extends ControllerBase {
       ],
       '#contact_cta' => [
         'title' => $this->t('Questions or Concerns?'),
-        'content' => $this->t('If you have any questions about our privacy practices or want to exercise your rights, please <a href="/talk-with-forseti_content" class="alert-link">talk with Forseti</a>. We typically respond within 48 hours.'),
+        'content' => $this->t('If you have any questions about our privacy practices or want to exercise your rights, please <a href="/contact" class="alert-link">contact Forseti</a>. We typically respond within 48 hours.'),
       ],
       '#last_updated' => $this->t('Last Updated: December 9, 2025'),
       '#cache' => [
@@ -604,7 +604,7 @@ class ForsetiPagesController extends ControllerBase {
               <div class="col-md-6 mb-3">
                 <div class="card card-forseti_content h-100 text-center">
                   <div class="card-body">
-                    <h4><img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon"> Support</h4>
+                    <h4><img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon"> Support</h4>
                     <p class="text-muted-light">24/7 AI Monitoring</p>
                     <p class="text-muted-gray">Email support Mon-Fri 9am-6pm</p>
                   </div>
@@ -740,7 +740,7 @@ class ForsetiPagesController extends ControllerBase {
           'content' => $this->t('These terms are governed by applicable laws. Disputes will be resolved through arbitration or mediation when possible. We are a private community and reserve the right to make final determinations on membership and access.'),
         ],
       ],
-      '#contact' => $this->t('Questions? <a href="/talk-with-forseti_content" class="alert-link">Talk with Forseti</a>'),
+      '#contact' => $this->t('Questions? <a href="/contact" class="alert-link">Contact Forseti</a>'),
       '#cache' => ['max-age' => 3600, 'contexts' => ['url']],
     ];
   }
@@ -785,7 +785,7 @@ class ForsetiPagesController extends ControllerBase {
       ],
       '#user_responsibility' => [
         'title' => $this->t('Member Responsibility & Reporting Issues'),
-        'content' => $this->t('Members are responsible for verifying and customizing AI-generated content before use. <strong>If you encounter any errors, concerns, or issues with our services, please <a href="/talk-with-forseti_content" class="alert-link">Talk with Forseti</a> to report them.</strong> We are committed to making improvements based on member feedback.'),
+        'content' => $this->t('Members are responsible for verifying and customizing AI-generated content before use. <strong>If you encounter any errors, concerns, or issues with our services, please <a href="/contact" class="alert-link">contact Forseti</a> to report them.</strong> We are committed to making improvements based on member feedback.'),
       ],
       '#liability_limitation' => [
         'title' => $this->t('Limitation of Liability'),
@@ -923,7 +923,7 @@ class ForsetiPagesController extends ControllerBase {
       ],
       '#feedback' => [
         'title' => $this->t('Accessibility Feedback'),
-        'content' => $this->t('We welcome feedback on accessibility. If you encounter barriers, please <a href="/talk-with-forseti_content" class="alert-link">talk with Forseti</a>. We strive to respond within 3 business days.'),
+        'content' => $this->t('We welcome feedback on accessibility. If you encounter barriers, please <a href="/contact" class="alert-link">contact Forseti</a>. We strive to respond within 3 business days.'),
       ],
       '#assistive_tech' => [
         'title' => $this->t('Tested With'),
@@ -1177,7 +1177,7 @@ class ForsetiPagesController extends ControllerBase {
       '#intro' => $this->t('These terms govern access to and use of the Forseti API.'),
       '#access' => [
         'title' => $this->t('API Access'),
-        'content' => $this->t('API access is currently limited to approved partners and researchers. To request access, <a href="/talk-with-forseti_content" class="alert-link">talk with Forseti</a>.'),
+        'content' => $this->t('API access is currently limited to approved partners and researchers. To request access, <a href="/contact" class="alert-link">contact Forseti</a>.'),
         'tiers' => [
           [
             'tier' => $this->t('Research Tier'),
@@ -1284,7 +1284,7 @@ class ForsetiPagesController extends ControllerBase {
           'description' => $this->t('Share accurate information and report truthfully'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Safety First'),
           'description' => $this->t('Prioritize community safety in all interactions'),
         ],
@@ -1355,11 +1355,11 @@ class ForsetiPagesController extends ControllerBase {
             'action' => $this->t('Permanent ban'),
           ],
         ],
-        'appeal' => $this->t('You may appeal moderation decisions by <a href="/talk-with-forseti_content" class="alert-link">talking with Forseti</a>.'),
+        'appeal' => $this->t('You may appeal moderation decisions by <a href="/contact" class="alert-link">contacting Forseti</a>.'),
       ],
       '#reporting_violations' => [
         'title' => $this->t('Reporting Guideline Violations'),
-        'content' => $this->t('If you see someone violating these guidelines, please report it through the app or <a href="/talk-with-forseti_content" class="alert-link">talk with Forseti</a>. All reports are reviewed by human moderators.'),
+        'content' => $this->t('If you see someone violating these guidelines, please report it through the app or <a href="/contact" class="alert-link">contact Forseti</a>. All reports are reviewed by human moderators.'),
       ],
       '#cache' => ['max-age' => 3600, 'contexts' => ['url']],
     ];
