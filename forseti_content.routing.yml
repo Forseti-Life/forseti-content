@@ -29,12 +29,12 @@ forseti_content.safety_map:
     no_cache: TRUE
 
 forseti_content.talk_with_forseti:
-  path: '/talk-with-forseti_content'
+  path: '/talk-with-forseti'
   defaults:
     _controller: '\Drupal\forseti_content\Controller\ForsetiPagesController::talkWithForseti'
     _title: 'Talk with Forseti'
   requirements:
-    _user_is_logged_in: 'TRUE'
+    _permission: 'access content'
   options:
     no_cache: TRUE
 

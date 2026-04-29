@@ -18,10 +18,14 @@ class ForsetiPagesController extends ControllerBase {
   public function talkWithForseti() {
     $current_user = $this->currentUser();
     
-    // If user is not authenticated, redirect to registration with message.
+    // If user is not authenticated, send them to the active auth entrypoint.
     if ($current_user->isAnonymous()) {
-      $this->messenger()->addWarning($this->t('Conversations with Forseti are reserved for community members. Please register for a free account to get started.'));
-      $url = Url::fromRoute('user.register');
+      $registration_mode = (string) \Drupal::config('user.settings')->get('register');
+      $registration_open = $registration_mode !== 'admin_only';
+      $this->messenger()->addWarning($registration_open
+        ? $this->t('Conversations with Forseti are reserved for community members. Please register for a free account to get started.')
+        : $this->t('Please log in to start a conversation with Forseti.'));
+      $url = Url::fromRoute($registration_open ? 'user.register' : 'user.login');
       return new RedirectResponse($url->toString());
     }
     
