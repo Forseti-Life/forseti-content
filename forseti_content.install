@@ -10,7 +10,7 @@ use Drupal\block\Entity\Block;
 /**
  * Implements hook_install().
  */
-function forseti_install() {
+function forseti_content_install() {
   // NOTE: The contact_forseti webform config is in config/optional to prevent
   // conflicts when reinstalling the module. Optional configs are only installed
   // if they don't already exist, preserving webform submissions.
@@ -49,18 +49,16 @@ function forseti_install() {
     $logger->info('Main navigation menu block already exists, skipped creation.');
   }
   
-  // Create footer menu block in footer region.
-  $existing_footer_block = $block_storage->load('forseti_forsetifootermenu');
+  // Create or repair the branded footer block in the footer region.
+  $existing_footer_block = $block_storage->load('forseti_footer');
+  $default_theme = \Drupal::config('system.theme')->get('default');
   
   if (!$existing_footer_block) {
-    // Get the default theme to ensure block is placed in active theme.
-    $default_theme = \Drupal::config('system.theme')->get('default');
-    
     $footer_block = $block_storage->create([
-      'id' => 'forseti_forsetifootermenu',
+      'id' => 'forseti_footer',
       'theme' => $default_theme,
       'region' => 'footer',
-      'weight' => 0,
+      'weight' => -5,
       'plugin' => 'forseti_footer_menu',
       'settings' => [
         'label' => 'Forseti Footer Menu',
@@ -72,8 +70,27 @@ function forseti_install() {
     $logger->info('Created Forseti Footer Menu block in footer region.');
   }
   else {
-    $messenger->addWarning(t('Forseti Footer Menu block already exists. Skipping creation.'));
-    $logger->info('Forseti Footer Menu block already exists, skipped creation.');
+    if ($existing_footer_block->getPluginId() !== 'forseti_footer_menu') {
+      $existing_footer_block->delete();
+      $footer_block = $block_storage->create([
+        'id' => 'forseti_footer',
+        'theme' => $default_theme,
+        'region' => 'footer',
+        'weight' => -5,
+        'plugin' => 'forseti_footer_menu',
+        'settings' => [
+          'label' => 'Forseti Footer Menu',
+          'label_display' => '0',
+        ],
+      ]);
+      $footer_block->save();
+      $messenger->addStatus(t('Forseti footer block was repaired and restored.'));
+      $logger->info('Replaced legacy footer block with Forseti Footer Menu block.');
+    }
+    else {
+      $messenger->addWarning(t('Forseti Footer Menu block already exists. Skipping creation.'));
+      $logger->info('Forseti Footer Menu block already exists, skipped creation.');
+    }
   }
   
   // Configure custom error pages to use theme templates.
@@ -114,7 +131,7 @@ function forseti_install() {
 /**
  * Implements hook_uninstall().
  */
-function forseti_uninstall() {
+function forseti_content_uninstall() {
   $logger = \Drupal::logger('forseti_content');
   
   // Remove the main menu block.
@@ -125,7 +142,7 @@ function forseti_uninstall() {
   }
   
   // Remove the footer menu block.
-  $footer_block = Block::load('forseti_forsetifootermenu');
+  $footer_block = Block::load('forseti_footer');
   if ($footer_block) {
     $footer_block->delete();
     $logger->info('Removed footer menu block.');
@@ -242,6 +259,52 @@ function forseti_update_9003() {
   drupal_flush_all_caches();
   $messages[] = t('Cleared all caches');
   
+  return implode(' | ', $messages);
+}
+
+/**
+ * Restore the Forseti home page setting and branded footer block.
+ */
+function forseti_content_update_9101() {
+  $messages = [];
+  $config = \Drupal::configFactory()->getEditable('system.site');
+  if ($config->get('page.front') !== '/home') {
+    $config->set('page.front', '/home');
+    $config->save();
+    $messages[] = t('Set the front page to /home.');
+  }
+  else {
+    $messages[] = t('Front page was already set to /home.');
+  }
+
+  $block_storage = \Drupal::entityTypeManager()->getStorage('block');
+  $default_theme = \Drupal::config('system.theme')->get('default');
+  $existing_footer_block = $block_storage->load('forseti_footer');
+  if ($existing_footer_block) {
+    $existing_footer_block->delete();
+  }
+
+  $footer_block = $block_storage->create([
+    'id' => 'forseti_footer',
+    'theme' => $default_theme,
+    'region' => 'footer',
+    'weight' => -5,
+    'plugin' => 'forseti_footer_menu',
+    'settings' => [
+      'id' => 'forseti_footer_menu',
+      'label' => 'Forseti Footer Menu',
+      'label_display' => '0',
+      'provider' => 'forseti_content',
+    ],
+    'visibility' => [],
+    'status' => TRUE,
+  ]);
+  $footer_block->save();
+  $messages[] = t('Restored the branded Forseti footer block.');
+
+  drupal_flush_all_caches();
+  $messages[] = t('Cleared caches.');
+
   return implode(' | ', $messages);
 }
 
