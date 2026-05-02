@@ -6,3 +6,8 @@ services:
   forseti_content.safety_dimensions:
     class: Drupal\forseti_content\Service\SafetyDimensionsService
     arguments: ['@string_translation']
+
+  forseti_content.authenticated_user_access:
+    class: Drupal\forseti_content\Access\AuthenticatedUserAccess
+    tags:
+      - { name: access_check, applies_to: route }
