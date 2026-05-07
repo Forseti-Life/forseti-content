@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
+use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Implements hook_help().
@@ -330,4 +331,15 @@ function forseti_content_theme($existing, $type, $theme, $path) {
       'template' => 'forseti-example-entities',
     ],
   ];
+}
+
+/**
+ * Implements hook_route_alter().
+ */
+function forseti_content_route_alter(RouteCollection $collection) {
+  if ($route = $collection->get('contact.site_page')) {
+    $route->setDefault('_controller', '\Drupal\forseti_content\Controller\ForsetiPagesController::contact');
+    $route->setDefault('_title', 'Contact Us');
+    $route->setRequirement('_permission', 'access content');
+  }
 }
