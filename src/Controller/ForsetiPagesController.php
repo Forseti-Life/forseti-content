@@ -535,17 +535,41 @@ class ForsetiPagesController extends ControllerBase {
    * Get Contact content.
    */
   private function getContactContent() {
-    // Get the webform entity
-    $webform = \Drupal::entityTypeManager()
-      ->getStorage('webform')
-      ->load('contact_forseti');
-    
-    // Build the webform render array
     $webform_build = [];
-    if ($webform) {
-      $webform_build = $webform->getSubmissionForm();
+    $module_handler = \Drupal::moduleHandler();
+    $entity_type_manager = \Drupal::entityTypeManager();
+
+    if ($module_handler->moduleExists('webform') && $entity_type_manager->hasDefinition('webform')) {
+      $webform = $entity_type_manager
+        ->getStorage('webform')
+        ->load('contact_forseti');
+
+      if ($webform) {
+        $webform_build = $webform->getSubmissionForm();
+      }
+      else {
+        \Drupal::logger('forseti_content')->warning('Contact page webform "contact_forseti" is missing; rendering fallback contact instructions.');
+      }
     }
-    
+    else {
+      \Drupal::logger('forseti_content')->warning('Webform module is unavailable; rendering fallback contact instructions on /contact.');
+    }
+
+    if (!$webform_build) {
+      $webform_build = [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['alert', 'alert-warning'],
+        ],
+        'title' => [
+          '#markup' => '<h3 class="mb-3">' . $this->t('Contact form temporarily unavailable') . '</h3>',
+        ],
+        'body' => [
+          '#markup' => '<p>' . $this->t('Please email <a href="mailto:support@forseti.life">support@forseti.life</a> and we will get back to you as soon as possible.') . '</p>',
+        ],
+      ];
+    }
+
     $build = [];
     
     $build['header'] = [
