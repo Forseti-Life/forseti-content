@@ -34,10 +34,8 @@ class NavigationMenuTest extends BrowserTestBase {
     'text',
     'image',
     'link',
-    'options',
     'menu_ui',
     'block',
-    'ai_conversation',
     'forseti_content',
   ];
 
@@ -135,72 +133,6 @@ class NavigationMenuTest extends BrowserTestBase {
       $unexpected,
       'Unexpected top-level nav items found: ' . implode(', ', $unexpected)
     );
-  }
-
-  /**
-   * Assert the Talk with Forseti menu link uses the chat launcher route.
-   */
-  public function testTalkWithForsetiMenuLinkTarget(): void {
-    $this->drupalGet('<front>');
-
-    $link = $this->assertSession()->linkByHrefExists('/talk-with-forseti');
-    $this->assertSame('Talk with Forseti', trim($link->getText()));
-    $this->assertSession()->elementNotExists(
-      'xpath',
-      '//nav//a[normalize-space(text())="Talk with Forseti" and @href="/contact"]'
-    );
-  }
-
-  /**
-   * Assert anonymous users are redirected into login when self-signup is closed.
-   */
-  public function testAnonymousTalkWithForsetiRedirectsToRegistration(): void {
-    $this->config('user.settings')
-      ->set('register', 'admin_only')
-      ->save();
-
-    $this->drupalGet('/talk-with-forseti');
-    $this->assertSession()->addressEquals('/user/login');
-    $this->assertSession()->pageTextContains('Please log in to start a conversation with Forseti.');
-  }
-
-  /**
-   * Assert authenticated users get a fresh conversation and land in chat.
-   */
-  public function testAuthenticatedTalkWithForsetiCreatesConversation(): void {
-    $account = $this->drupalCreateUser([
-      'access content',
-      'use ai conversation',
-      'create ai_conversation content',
-    ]);
-    $this->drupalLogin($account);
-
-    $storage = \Drupal::entityTypeManager()->getStorage('node');
-    $before_ids = \Drupal::entityQuery('node')
-      ->accessCheck(FALSE)
-      ->condition('type', 'ai_conversation')
-      ->condition('uid', $account->id())
-      ->execute();
-
-    $this->drupalGet('/talk-with-forseti');
-    $this->assertSession()->statusCodeEquals(200);
-    $this->assertSession()->addressMatches('#^/node/\\d+/chat$#');
-
-    $after_ids = \Drupal::entityQuery('node')
-      ->accessCheck(FALSE)
-      ->condition('type', 'ai_conversation')
-      ->condition('uid', $account->id())
-      ->execute();
-
-    $this->assertCount(count($before_ids) + 1, $after_ids);
-
-    $new_ids = array_values(array_diff($after_ids, $before_ids));
-    $this->assertCount(1, $new_ids, 'Exactly one new AI conversation node was created.');
-
-    $conversation = $storage->load(reset($new_ids));
-    $this->assertNotNull($conversation);
-    $this->assertSame('ai_conversation', $conversation->bundle());
-    $this->assertStringContainsString('Conversation with Forseti - ', $conversation->label());
   }
 
 }

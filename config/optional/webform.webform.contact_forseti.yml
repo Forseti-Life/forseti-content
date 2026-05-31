@@ -46,8 +46,8 @@ settings:
   ajax_progress_type: ''
   ajax_effect: ''
   ajax_speed: null
-  page: false
-  page_submit_path: ''
+  page: true
+  page_submit_path: /talk-with-forseti_content
   page_confirm_path: ''
   page_theme_name: ''
   form_title: both

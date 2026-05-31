@@ -3,6 +3,8 @@
 namespace Drupal\forseti_content\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Component\Utility\Html;
+use Drupal\forseti_content\Service\ForsetiPipelineStatusResolver;
 use Drupal\node\Entity\Node;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\Core\Url;
@@ -18,14 +20,10 @@ class ForsetiPagesController extends ControllerBase {
   public function talkWithForseti() {
     $current_user = $this->currentUser();
     
-    // If user is not authenticated, send them to the active auth entrypoint.
+    // If user is not authenticated, redirect to registration with message.
     if ($current_user->isAnonymous()) {
-      $registration_mode = (string) \Drupal::config('user.settings')->get('register');
-      $registration_open = $registration_mode !== 'admin_only';
-      $this->messenger()->addWarning($registration_open
-        ? $this->t('Conversations with Forseti are reserved for community members. Please register for a free account to get started.')
-        : $this->t('Please log in to start a conversation with Forseti.'));
-      $url = Url::fromRoute($registration_open ? 'user.register' : 'user.login');
+      $this->messenger()->addWarning($this->t('Conversations with Forseti are reserved for community members. Please register for a free account to get started.'));
+      $url = Url::fromRoute('user.register');
       return new RedirectResponse($url->toString());
     }
     
@@ -180,13 +178,470 @@ class ForsetiPagesController extends ControllerBase {
       ],
       '#cta_buttons' => [
         ['url' => '/contact', 'text' => $this->t('Express Interest in Membership'), 'style' => 'primary'],
-        ['url' => '/contact', 'text' => $this->t('Ask About Our Services'), 'style' => 'outline-primary'],
+        ['url' => '/jobhunter', 'text' => $this->t('Try Our Services'), 'style' => 'outline-primary'],
       ],
       '#cache' => [
         'max-age' => 3600,
         'contexts' => ['url'],
       ],
     ];
+  }
+
+  /**
+   * Project roadmap page.
+   */
+  public function roadmap() {
+    return [
+      '#theme' => 'forseti_page_roadmap',
+      '#title' => $this->t('Project Roadmaps'),
+      '#intro' => $this->t('Forseti is building multiple community-managed products in parallel. This page is the authoritative roadmap for all numbered portfolio items, synced from the HQ project registry so product tracks and delivery initiatives stay aligned with execution.'),
+      '#projects' => $this->loadRoadmapProjects(),
+      '#attached' => ['library' => ['forseti_content/style']],
+      '#cache' => [
+        'max-age' => 300,
+        'contexts' => ['url'],
+      ],
+    ];
+  }
+
+  /**
+   * Individual roadmap detail page.
+   */
+  public function roadmapProject(string $project_id) {
+    $project = $this->loadRoadmapProjectDetail($project_id);
+    if ($project === NULL) {
+      throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+    }
+
+    if (($project['product'] ?? '') === 'dungeoncrawler') {
+      return new RedirectResponse('https://dungeoncrawler.forseti.life/roadmap');
+    }
+
+    return [
+      '#theme' => 'forseti_page_roadmap_project',
+      '#title' => $project['title'],
+      '#project_id' => $project['project_id'],
+      '#summary' => $project['summary'],
+      '#meta' => $project['meta'],
+      '#roadmap_reference' => $project['roadmap_reference'],
+      '#current_state' => $project['current_state'],
+      '#next_step' => $project['next_step'],
+      '#queue_status' => $project['queue_status'],
+      '#goals' => $project['goals'],
+      '#nav_links' => $project['nav_links'],
+      '#pipeline_counts'  => $this->getProjectPipelineCounts($project['project_id']),
+      '#feature_groups'   => $this->getProjectFeatureGroups($project['project_id']),
+      '#attached' => ['library' => ['forseti_content/style']],
+      '#cache' => [
+        'max-age' => 300,
+        'contexts' => ['url'],
+      ],
+    ];
+  }
+
+  /**
+   * Resolve a path under COPILOT_HQ_ROOT.
+   */
+  protected function resolveHqPath(string $relative_path): string {
+    $root = rtrim((string) (getenv('COPILOT_HQ_ROOT') ?: '/home/ubuntu/forseti.life/copilot-hq'), '/');
+    return $root . '/' . ltrim($relative_path, '/');
+  }
+
+  /**
+   * Load roadmap cards from dashboards/PROJECTS.md.
+   *
+   * @return array<int, array<string, mixed>>
+   *   Render-ready project cards.
+   */
+  protected function loadRoadmapProjects(): array {
+    $projects_path = $this->resolveHqPath('dashboards/PROJECTS.md');
+    if (!is_readable($projects_path)) {
+      \Drupal::logger('forseti_content')->warning('Roadmap project registry unreadable: @path', ['@path' => $projects_path]);
+      return [[
+        'title' => $this->t('Project registry unavailable'),
+        'status' => $this->t('sync warning'),
+        'summary' => $this->t('The Forseti roadmap could not read dashboards/PROJECTS.md, so the synced project list is temporarily unavailable.'),
+        'meta' => $this->t('Source: dashboards/PROJECTS.md'),
+        'roadmap' => [
+          $this->t('Confirm COPILOT_HQ_ROOT is set correctly for the web runtime.'),
+          $this->t('Restore access to the HQ project registry so this roadmap can stay synchronized automatically.'),
+        ],
+        'link_url' => '',
+        'link_text' => '',
+      ]];
+    }
+
+    $markdown = file_get_contents($projects_path);
+    if ($markdown === FALSE || trim($markdown) === '') {
+      \Drupal::logger('forseti_content')->warning('Roadmap project registry empty: @path', ['@path' => $projects_path]);
+      return [];
+    }
+
+    $registry = $this->parseProjectsRegistry($markdown);
+    $details = $this->parseProjectSections($markdown);
+    $projects = [];
+
+    foreach ($registry as $row) {
+      $project_id = $row['id'];
+      $detail = $details[$project_id] ?? [];
+      $project_manager = $this->resolveRoadmapProjectManager($row);
+      $summary = !empty($detail['scope']) ? $detail['scope'] : (!empty($detail['problem']) ? $detail['problem'] : (string) $this->t('Portfolio initiative tracked in the HQ project registry.'));
+      $roadmap = [];
+      foreach (['current_state' => 'Current state', 'next_step' => 'Next step', 'queue_status' => 'Queue status'] as $key => $label) {
+        if (!empty($detail[$key])) {
+          $roadmap[] = $label . ': ' . $detail[$key];
+        }
+      }
+      if (!empty($detail['last_scoped_release'])) {
+        array_splice($roadmap, 1, 0, ['Last scoped release: ' . $detail['last_scoped_release']]);
+      }
+      if (empty($roadmap) && !empty($detail['goals'])) {
+        $roadmap = $detail['goals'];
+      }
+      if (empty($roadmap)) {
+        $roadmap[] = (string) $this->t('See dashboards/PROJECTS.md for the current execution notes.');
+      }
+
+      $link_url = '';
+      $link_text = '';
+      if (($row['product'] ?? '') === 'dungeoncrawler') {
+        $link_url = 'https://dungeoncrawler.forseti.life/roadmap';
+        $link_text = (string) $this->t('Open Dungeoncrawler roadmap');
+      }
+      elseif (($row['product'] ?? '') === 'forseti.life') {
+        $link_url = Url::fromRoute('forseti_content.roadmap_project', ['project_id' => $project_id])->toString();
+        $link_text = (string) $this->t('Open project roadmap');
+      }
+
+      $actions = [];
+      if ($link_url !== '' && $link_text !== '') {
+        $actions[] = [
+          'url' => $link_url,
+          'text' => $link_text,
+          'style' => 'primary',
+        ];
+      }
+      foreach ($this->buildReleaseNavigationLinks($detail['last_scoped_release'] ?? '') as $link) {
+        $actions[] = $link;
+      }
+
+      $projects[] = [
+        'title' => $project_id . ' - ' . ($row['name'] ?? $project_id),
+        'status' => $this->formatRoadmapStatus((string) ($row['status'] ?? 'unknown'), (string) ($row['priority'] ?? '')),
+        'summary' => $summary,
+        'meta' => implode(' • ', array_filter([
+          'Type: ' . ($row['type'] ?? ''),
+          'Product: ' . ($row['product'] ?? ''),
+          'PM: ' . $project_manager,
+          'Lead: ' . ($row['lead'] ?? ''),
+          'Started: ' . ($row['started'] ?? ''),
+          !empty($detail['last_scoped_release']) ? 'Last release: ' . $detail['last_scoped_release'] : '',
+          !empty($detail['progress_sla']) ? 'Progress: ' . $this->summarizeProgressStatus($detail['last_scoped_release'] ?? '', $detail['progress_sla'], $detail['queue_status'] ?? '') : '',
+        ])),
+        'roadmap' => $roadmap,
+        'actions' => $actions,
+        'pipeline_counts' => $this->getProjectPipelineCounts($project_id),
+      ];
+    }
+
+    return $projects;
+  }
+
+  /**
+   * Load a single project detail from dashboards/PROJECTS.md.
+   */
+  protected function loadRoadmapProjectDetail(string $project_id): ?array {
+    $projects_path = $this->resolveHqPath('dashboards/PROJECTS.md');
+    if (!is_readable($projects_path)) {
+      return NULL;
+    }
+
+    $markdown = file_get_contents($projects_path);
+    if ($markdown === FALSE || trim($markdown) === '') {
+      return NULL;
+    }
+
+    $project_id = strtoupper($project_id);
+    $registry = $this->parseProjectsRegistry($markdown);
+    $details = $this->parseProjectSections($markdown);
+
+    foreach ($registry as $row) {
+      if (($row['id'] ?? '') !== $project_id) {
+        continue;
+      }
+
+      $detail = $details[$project_id] ?? [];
+      $project_manager = $this->resolveRoadmapProjectManager($row);
+      return [
+        'nav_links' => array_merge(
+          [[
+            'url' => Url::fromRoute('forseti_content.roadmap')->toString(),
+            'text' => (string) $this->t('Back to all roadmaps'),
+            'style' => 'primary',
+          ]],
+          $this->buildReleaseNavigationLinks($detail['last_scoped_release'] ?? '')
+        ),
+        'project_id' => $project_id,
+        'title' => $project_id . ' - ' . ($row['name'] ?? $project_id),
+        'product' => $row['product'] ?? '',
+        'summary' => !empty($detail['scope']) ? $detail['scope'] : (!empty($detail['problem']) ? $detail['problem'] : (string) $this->t('Portfolio initiative tracked in the HQ project registry.')),
+        'meta' => [
+          'Type' => $row['type'] ?? '',
+          'Status' => $row['status'] ?? 'unknown',
+          'Priority' => $row['priority'] ?? '',
+          'PM' => $project_manager,
+          'Lead' => $row['lead'] ?? '',
+          'Started' => $row['started'] ?? '',
+          'Product' => $row['product'] ?? '',
+          'Last scoped release' => $detail['last_scoped_release'] ?? '',
+          'Progress SLA' => $detail['progress_sla'] ?? '',
+          'Progress status' => $this->summarizeProgressStatus($detail['last_scoped_release'] ?? '', $detail['progress_sla'] ?? '', $detail['queue_status'] ?? ''),
+        ],
+        'roadmap_reference' => $detail['roadmap_reference'] ?? '',
+        'current_state' => $detail['current_state'] ?? '',
+        'next_step' => $detail['next_step'] ?? '',
+        'queue_status' => $detail['queue_status'] ?? '',
+        'goals' => $detail['goals'] ?? [],
+      ];
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Build navigation links from roadmap pages into release pages when visible.
+   */
+  protected function buildReleaseNavigationLinks(string $release_id): array {
+    $release_id = trim($release_id);
+    if (
+      $release_id === ''
+      || !preg_match('/^\d{8}-[A-Za-z0-9._-]+$/', $release_id)
+      || !$this->currentUser()->hasPermission('administer copilot agent tracker')
+    ) {
+      return [];
+    }
+
+    return [
+      [
+        'url' => Url::fromRoute('copilot_agent_tracker.release_notes_release', ['release_id' => $release_id])->toString(),
+        'text' => (string) $this->t('Release status'),
+        'style' => 'secondary',
+      ],
+      [
+        'url' => Url::fromRoute('copilot_agent_tracker.release_notes')->toString(),
+        'text' => (string) $this->t('All release notes'),
+        'style' => 'secondary',
+      ],
+    ];
+  }
+
+  /**
+   * Parse the project registry table from PROJECTS.md.
+   */
+  protected function parseProjectsRegistry(string $markdown): array {
+    if (!preg_match('/^## Registry\s*$([\s\S]*?)(?:^---\s*$)/m', $markdown, $matches)) {
+      return [];
+    }
+
+    $rows = [];
+    foreach (preg_split('/\R/', trim($matches[1])) as $line) {
+      $trimmed = trim($line);
+      if ($trimmed === '' || $trimmed[0] !== '|' || str_contains($trimmed, '|---')) {
+        continue;
+      }
+      $parts = array_map('trim', explode('|', trim($trimmed, '|')));
+      if (count($parts) !== 8 || $parts[0] === 'ID') {
+        continue;
+      }
+      $rows[] = [
+        'id' => $parts[0],
+        'name' => $parts[1],
+        'type' => $parts[2],
+        'product' => $parts[3],
+        'status' => $parts[4],
+        'priority' => $parts[5],
+        'lead' => $parts[6],
+        'started' => $parts[7],
+      ];
+    }
+
+    usort($rows, function (array $a, array $b): int {
+      $a_number = $this->extractProjectNumber((string) ($a['id'] ?? ''));
+      $b_number = $this->extractProjectNumber((string) ($b['id'] ?? ''));
+
+      if ($a_number !== $b_number) {
+        return $a_number <=> $b_number;
+      }
+
+      return strcmp((string) ($a['id'] ?? ''), (string) ($b['id'] ?? ''));
+    });
+
+    return $rows;
+  }
+
+  /**
+   * Returns pipeline counts for a project via the ForsetiPipelineStatusResolver.
+   *
+   * @return array{implemented: int, in_progress: int, queued: int, pending: int, total: int, impl_pct: int, progress_pct: int}
+   */
+  protected function getProjectPipelineCounts(string $project_id): array {
+    /** @var \Drupal\forseti_content\Service\ForsetiPipelineStatusResolver $resolver */
+    $resolver = \Drupal::service('forseti_content.pipeline_status_resolver');
+    return $resolver->getProjectCounts($project_id);
+  }
+
+  /**
+   * Returns grouped feature drill-down data for DC-parity roadmap view.
+   *
+   * @return array<string, array>
+   */
+  protected function getProjectFeatureGroups(string $project_id): array {
+    /** @var \Drupal\forseti_content\Service\ForsetiPipelineStatusResolver $resolver */
+    $resolver = \Drupal::service('forseti_content.pipeline_status_resolver');
+    return $resolver->getProjectFeatureGroups($project_id);
+  }
+
+  /**
+   * Extract the numeric portion of a PROJ-* identifier for ordering.
+   */
+  protected function extractProjectNumber(string $project_id): int {
+    if (preg_match('/^PROJ-(\d+)$/i', trim($project_id), $matches)) {
+      return (int) $matches[1];
+    }
+
+    return PHP_INT_MAX;
+  }
+
+  /**
+   * Parse project detail sections from PROJECTS.md.
+   */
+  protected function parseProjectSections(string $markdown): array {
+    $matches = [];
+    preg_match_all('/^## (PROJ-\d+) — (.+)$/m', $markdown, $matches, PREG_OFFSET_CAPTURE);
+    if (empty($matches[0])) {
+      return [];
+    }
+
+    $sections = [];
+    $count = count($matches[0]);
+    for ($i = 0; $i < $count; $i++) {
+      $project_id = $matches[1][$i][0];
+      $start = $matches[0][$i][1] + strlen($matches[0][$i][0]);
+      $end = $i + 1 < $count ? $matches[0][$i + 1][1] : strlen($markdown);
+      $body = trim(substr($markdown, $start, $end - $start));
+      $sections[$project_id] = [
+        'roadmap_reference' => $this->extractLabeledValue($body, 'Roadmap') ?: $this->extractLabeledValue($body, 'Roadmap audit runbook'),
+        'scope' => $this->extractLabeledValue($body, 'Scope'),
+        'problem' => $this->extractParagraphAfterHeading($body, '### Problem'),
+        'current_state' => $this->extractLabeledValue($body, 'Current state') ?: $this->extractLabeledValue($body, 'Current status'),
+        'last_scoped_release' => $this->extractLabeledValue($body, 'Last scoped release'),
+        'progress_sla' => $this->extractLabeledValue($body, 'Progress SLA'),
+        'next_step' => $this->extractLabeledValue($body, 'Next step'),
+        'queue_status' => $this->extractLabeledValue($body, 'Queue status'),
+        'goals' => $this->extractBulletsAfterHeading($body, '### Goals'),
+      ];
+    }
+
+    return $sections;
+  }
+
+  /**
+   * Extract a single-line labeled markdown value.
+   */
+  protected function extractLabeledValue(string $text, string $label): string {
+    $label_pattern = preg_quote($label, '/') . '(?:\s*\([^)]+\))?';
+    if (preg_match('/^\*\*' . $label_pattern . ':\*\*\s*(.+)$/m', $text, $matches)) {
+      return Html::decodeEntities(trim(strip_tags($matches[1])));
+    }
+    if (preg_match('/^' . $label_pattern . ':\s*(.+)$/m', $text, $matches)) {
+      return Html::decodeEntities(trim(strip_tags($matches[1])));
+    }
+    return '';
+  }
+
+  /**
+   * Extract the first paragraph after a markdown heading.
+   */
+  protected function extractParagraphAfterHeading(string $text, string $heading): string {
+    if (!preg_match('/^' . preg_quote($heading, '/') . '\s*$([\s\S]*?)(?:^\s*$|^### |\z)/m', $text, $matches)) {
+      return '';
+    }
+    $paragraph = trim(preg_replace('/\s+/', ' ', $matches[1]));
+    return Html::decodeEntities(trim(strip_tags($paragraph)));
+  }
+
+  /**
+   * Extract bullet list items after a markdown heading.
+   */
+  protected function extractBulletsAfterHeading(string $text, string $heading): array {
+    if (!preg_match('/^' . preg_quote($heading, '/') . '\s*$([\s\S]*?)(?:^### |\z)/m', $text, $matches)) {
+      return [];
+    }
+    $items = [];
+    foreach (preg_split('/\R/', trim($matches[1])) as $line) {
+      if (preg_match('/^\d+\.\s+(.+)$/', trim($line), $bullet) || preg_match('/^-\s+(.+)$/', trim($line), $bullet)) {
+        $items[] = Html::decodeEntities(trim(strip_tags($bullet[1])));
+      }
+    }
+    return $items;
+  }
+
+  /**
+   * Resolve the PM seat for a roadmap row.
+   */
+  protected function resolveRoadmapProjectManager(array $row): string {
+    $lead = (string) ($row['lead'] ?? '');
+    if (preg_match('/\b(pm-[a-z0-9-]+)\b/i', $lead, $matches)) {
+      return strtolower($matches[1]);
+    }
+
+    $product = strtolower(trim((string) ($row['product'] ?? '')));
+    return match ($product) {
+      'dungeoncrawler' => 'pm-dungeoncrawler',
+      'forseti.life' => 'pm-forseti',
+      'infrastructure' => 'pm-infra',
+      default => '',
+    };
+  }
+
+  /**
+   * Format a human-readable roadmap status badge.
+   */
+  protected function formatRoadmapStatus(string $status, string $priority = ''): string {
+    $label = ucwords(str_replace('_', ' ', trim($status)));
+    return trim($label . ($priority !== '' ? ' - ' . trim($priority) : ''));
+  }
+
+  /**
+   * Summarize project progression against the stated SLA.
+   */
+  protected function summarizeProgressStatus(string $last_scoped_release, string $progress_sla, string $queue_status = ''): string {
+    if ($progress_sla === '') {
+      return '';
+    }
+
+    if (!preg_match('/(\d+)\s*days?/i', $progress_sla, $sla_matches)) {
+      return 'SLA defined';
+    }
+
+    $sla_days = (int) $sla_matches[1];
+    if ($sla_days <= 0) {
+      return 'SLA defined';
+    }
+
+    if (preg_match('/(20\d{6})-/', $last_scoped_release, $release_matches)) {
+      $release_date = \DateTimeImmutable::createFromFormat('!Ymd', $release_matches[1], new \DateTimeZone('UTC'));
+      if ($release_date instanceof \DateTimeImmutable) {
+        $age_days = (int) $release_date->diff(new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->days;
+        return $age_days > $sla_days ? 'SLA breach' : 'On track';
+      }
+    }
+
+    if (str_contains(mb_strtolower($queue_status), 'queued')) {
+      return 'Needs scoped release';
+    }
+
+    return 'Missing progression evidence';
   }
 
   /**
@@ -214,22 +669,22 @@ class ForsetiPagesController extends ControllerBase {
       '#why_join_title' => $this->t('Why Join?'),
       '#benefits' => [
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Stay Informed'),
           'description' => $this->t('Get notified when you enter areas with elevated safety concerns based on your current geographic location and situational context, plus receive weekly safety summaries.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Connect with Neighbors'),
           'description' => $this->t('Join neighborhood watch groups, coordinate safety efforts, and build stronger community bonds.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Make an Impact'),
           'description' => $this->t('Report incidents, validate AI predictions, and contribute to the safety intelligence that protects your community.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Learn & Grow'),
           'description' => $this->t('Access safety resources, attend community events, and participate in safety awareness programs.'),
         ],
@@ -285,7 +740,7 @@ class ForsetiPagesController extends ControllerBase {
         'description' => $this->t('Forseti Mobile brings the power of AI monitoring directly to your smartphone. Get notified when you enter areas with elevated safety concerns, access location-based safety information with real-time crime data, and create your account to access personalized features.'),
       ],
       '#app_display' => [
-        'logo' => '/themes/custom/forseti/images/logos/originals/forseti_safe.png',
+        'logo' => '/themes/custom/forseti_content/images/logos/originals/forseti_safe.png',
         'android_icon' => '<i class="fab fa-android fa-2x text-success"></i>',
         'ios_icon' => '<i class="fab fa-apple fa-2x text-muted"></i>',
         'status' => $this->t('Beta v1.0.2 Available'),
@@ -294,37 +749,37 @@ class ForsetiPagesController extends ControllerBase {
       '#features_title' => $this->t('Current Features'),
       '#features' => [
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('User Accounts & Authentication'),
           'description' => $this->t('Create your account and login with secure production authentication. Access personalized safety features.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Location-Based Alerts'),
           'description' => $this->t('Automatic notifications when you enter high-risk areas or when incidents occur near your location.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_energized.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_energized.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Emergency SOS'),
           'description' => $this->t('One-touch access to emergency services with automatic location sharing and emergency contact notifications.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Interactive Maps'),
           'description' => $this->t('View real-time crime incidents, safety zones, and navigate the safest routes to your destination.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Incident Reporting'),
           'description' => $this->t('Quickly report suspicious activity or incidents with photos, descriptions, and automatic GPS tagging.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_whole.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_whole.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Check-In Feature'),
           'description' => $this->t('Let friends and family know you\'re safe with automatic check-ins and location sharing.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Offline Resources'),
           'description' => $this->t('Access safety tips, emergency contacts, and critical information even without an internet connection.'),
         ],
@@ -418,22 +873,22 @@ class ForsetiPagesController extends ControllerBase {
       ],
       '#security_measures' => [
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Encryption'),
           'description' => $this->t('All data is encrypted in transit (TLS 1.3) and at rest (AES-256).'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Authentication'),
           'description' => $this->t('Multi-factor authentication and secure password policies protect member accounts.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_free.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_free.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Access Controls'),
           'description' => $this->t('Strict role-based access with audit logging ensures data security.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Regular Audits'),
           'description' => $this->t('Third-party security audits and penetration testing maintain our security standards.'),
         ],
@@ -461,7 +916,7 @@ class ForsetiPagesController extends ControllerBase {
       ],
       '#contact_cta' => [
         'title' => $this->t('Questions or Concerns?'),
-        'content' => $this->t('If you have any questions about our privacy practices or want to exercise your rights, please <a href="/contact" class="alert-link">contact Forseti</a>. We typically respond within 48 hours.'),
+        'content' => $this->t('If you have any questions about our privacy practices or want to exercise your rights, please <a href="/talk-with-forseti_content" class="alert-link">talk with Forseti</a>. We typically respond within 48 hours.'),
       ],
       '#last_updated' => $this->t('Last Updated: December 9, 2025'),
       '#cache' => [
@@ -518,7 +973,30 @@ class ForsetiPagesController extends ControllerBase {
    * Contact page.
    */
   public function contact() {
-    return $this->getContactContent();
+    // Get the webform entity
+    $webform = \Drupal::entityTypeManager()
+      ->getStorage('webform')
+      ->load('contact_forseti');
+    
+    if (!$webform) {
+      return [
+        '#markup' => '<div class="container py-5"><p>Contact form is currently unavailable. Please email us at <a href="mailto:administration@forseti.life">administration@forseti.life</a></p></div>',
+      ];
+    }
+    
+    // Build the webform render array
+    $webform_build = $webform->getSubmissionForm();
+    
+    return [
+      '#theme' => 'forseti_page_contact',
+      '#title' => $this->t('Contact Us'),
+      '#subtitle' => $this->t('Get in touch with the Forseti team'),
+      '#webform' => $webform_build,
+      '#cache' => [
+        'max-age' => 3600,
+        'contexts' => ['url'],
+      ],
+    ];
   }
 
   /**
@@ -535,41 +1013,17 @@ class ForsetiPagesController extends ControllerBase {
    * Get Contact content.
    */
   private function getContactContent() {
+    // Get the webform entity
+    $webform = \Drupal::entityTypeManager()
+      ->getStorage('webform')
+      ->load('contact_forseti');
+    
+    // Build the webform render array
     $webform_build = [];
-    $module_handler = \Drupal::moduleHandler();
-    $entity_type_manager = \Drupal::entityTypeManager();
-
-    if ($module_handler->moduleExists('webform') && $entity_type_manager->hasDefinition('webform')) {
-      $webform = $entity_type_manager
-        ->getStorage('webform')
-        ->load('contact_forseti');
-
-      if ($webform) {
-        $webform_build = $webform->getSubmissionForm();
-      }
-      else {
-        \Drupal::logger('forseti_content')->warning('Contact page webform "contact_forseti" is missing; rendering fallback contact instructions.');
-      }
+    if ($webform) {
+      $webform_build = $webform->getSubmissionForm();
     }
-    else {
-      \Drupal::logger('forseti_content')->warning('Webform module is unavailable; rendering fallback contact instructions on /contact.');
-    }
-
-    if (!$webform_build) {
-      $webform_build = [
-        '#type' => 'container',
-        '#attributes' => [
-          'class' => ['alert', 'alert-warning'],
-        ],
-        'title' => [
-          '#markup' => '<h3 class="mb-3">' . $this->t('Contact form temporarily unavailable') . '</h3>',
-        ],
-        'body' => [
-          '#markup' => '<p>' . $this->t('Please email <a href="mailto:support@forseti.life">support@forseti.life</a> and we will get back to you as soon as possible.') . '</p>',
-        ],
-      ];
-    }
-
+    
     $build = [];
     
     $build['header'] = [
@@ -609,7 +1063,7 @@ class ForsetiPagesController extends ControllerBase {
               <div class="col-md-6 mb-3">
                 <div class="card card-forseti_content h-100 text-center">
                   <div class="card-body">
-                    <h4><img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon"> Support</h4>
+                    <h4><img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon"> Support</h4>
                     <p class="text-muted-light">24/7 AI Monitoring</p>
                     <p class="text-muted-gray">Email support Mon-Fri 9am-6pm</p>
                   </div>
@@ -745,7 +1199,7 @@ class ForsetiPagesController extends ControllerBase {
           'content' => $this->t('These terms are governed by applicable laws. Disputes will be resolved through arbitration or mediation when possible. We are a private community and reserve the right to make final determinations on membership and access.'),
         ],
       ],
-      '#contact' => $this->t('Questions? <a href="/contact" class="alert-link">Contact Forseti</a>'),
+      '#contact' => $this->t('Questions? <a href="/talk-with-forseti_content" class="alert-link">Talk with Forseti</a>'),
       '#cache' => ['max-age' => 3600, 'contexts' => ['url']],
     ];
   }
@@ -790,7 +1244,7 @@ class ForsetiPagesController extends ControllerBase {
       ],
       '#user_responsibility' => [
         'title' => $this->t('Member Responsibility & Reporting Issues'),
-        'content' => $this->t('Members are responsible for verifying and customizing AI-generated content before use. <strong>If you encounter any errors, concerns, or issues with our services, please <a href="/contact" class="alert-link">contact Forseti</a> to report them.</strong> We are committed to making improvements based on member feedback.'),
+        'content' => $this->t('Members are responsible for verifying and customizing AI-generated content before use. <strong>If you encounter any errors, concerns, or issues with our services, please <a href="/talk-with-forseti_content" class="alert-link">Talk with Forseti</a> to report them.</strong> We are committed to making improvements based on member feedback.'),
       ],
       '#liability_limitation' => [
         'title' => $this->t('Limitation of Liability'),
@@ -928,7 +1382,7 @@ class ForsetiPagesController extends ControllerBase {
       ],
       '#feedback' => [
         'title' => $this->t('Accessibility Feedback'),
-        'content' => $this->t('We welcome feedback on accessibility. If you encounter barriers, please <a href="/contact" class="alert-link">contact Forseti</a>. We strive to respond within 3 business days.'),
+        'content' => $this->t('We welcome feedback on accessibility. If you encounter barriers, please <a href="/talk-with-forseti_content" class="alert-link">talk with Forseti</a>. We strive to respond within 3 business days.'),
       ],
       '#assistive_tech' => [
         'title' => $this->t('Tested With'),
@@ -1182,7 +1636,7 @@ class ForsetiPagesController extends ControllerBase {
       '#intro' => $this->t('These terms govern access to and use of the Forseti API.'),
       '#access' => [
         'title' => $this->t('API Access'),
-        'content' => $this->t('API access is currently limited to approved partners and researchers. To request access, <a href="/contact" class="alert-link">contact Forseti</a>.'),
+        'content' => $this->t('API access is currently limited to approved partners and researchers. To request access, <a href="/talk-with-forseti_content" class="alert-link">talk with Forseti</a>.'),
         'tiers' => [
           [
             'tier' => $this->t('Research Tier'),
@@ -1289,7 +1743,7 @@ class ForsetiPagesController extends ControllerBase {
           'description' => $this->t('Share accurate information and report truthfully'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Safety First'),
           'description' => $this->t('Prioritize community safety in all interactions'),
         ],
@@ -1360,11 +1814,11 @@ class ForsetiPagesController extends ControllerBase {
             'action' => $this->t('Permanent ban'),
           ],
         ],
-        'appeal' => $this->t('You may appeal moderation decisions by <a href="/contact" class="alert-link">contacting Forseti</a>.'),
+        'appeal' => $this->t('You may appeal moderation decisions by <a href="/talk-with-forseti_content" class="alert-link">talking with Forseti</a>.'),
       ],
       '#reporting_violations' => [
         'title' => $this->t('Reporting Guideline Violations'),
-        'content' => $this->t('If you see someone violating these guidelines, please report it through the app or <a href="/contact" class="alert-link">contact Forseti</a>. All reports are reviewed by human moderators.'),
+        'content' => $this->t('If you see someone violating these guidelines, please report it through the app or <a href="/talk-with-forseti_content" class="alert-link">talk with Forseti</a>. All reports are reviewed by human moderators.'),
       ],
       '#cache' => ['max-age' => 3600, 'contexts' => ['url']],
     ];
