@@ -6,7 +6,6 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
-use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Implements hook_help().
@@ -50,6 +49,32 @@ function forseti_content_theme($existing, $type, $theme, $path) {
         'cta_buttons' => [],
       ],
       'template' => 'forseti-page-how-it-works',
+    ],
+    'forseti_page_roadmap' => [
+      'variables' => [
+        'title' => NULL,
+        'intro' => NULL,
+        'projects' => [],
+      ],
+      'template' => 'forseti-page-roadmap',
+    ],
+    'forseti_page_roadmap_project' => [
+      'variables' => [
+        'title' => NULL,
+        'project_id' => NULL,
+        'summary' => NULL,
+        'meta' => [],
+        'roadmap_reference' => NULL,
+        'current_state' => NULL,
+        'next_step' => NULL,
+        'queue_status' => NULL,
+        'goals' => [],
+        'back_url' => NULL,
+        'nav_links' => [],
+        'pipeline_counts' => [],
+        'feature_groups'  => [],
+      ],
+      'template' => 'forseti-page-roadmap-project',
     ],
     'forseti_page_community' => [
       'variables' => [
@@ -331,15 +356,4 @@ function forseti_content_theme($existing, $type, $theme, $path) {
       'template' => 'forseti-example-entities',
     ],
   ];
-}
-
-/**
- * Implements hook_route_alter().
- */
-function forseti_content_route_alter(RouteCollection $collection) {
-  if ($route = $collection->get('contact.site_page')) {
-    $route->setDefault('_controller', '\Drupal\forseti_content\Controller\ForsetiPagesController::contact');
-    $route->setDefault('_title', 'Contact Us');
-    $route->setRequirement('_permission', 'access content');
-  }
 }

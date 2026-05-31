@@ -976,17 +976,8 @@ class AgentPowerFrameworkController extends ControllerBase {
     $query = $storage->getQuery()
       ->condition('type', 'evaluated_entity')
       ->condition('status', 1)
+      ->sort($sort_field_name, $sort_direction)
       ->accessCheck(TRUE);
-    
-    // Only add sort if field exists (evaluated_entity may not have all expected fields)
-    $field_manager = \Drupal::service('entity_field.manager');
-    $fields = $field_manager->getFieldDefinitions('node', 'evaluated_entity');
-    if (isset($fields[$sort_field_name])) {
-      $query->sort($sort_field_name, $sort_direction);
-    } else {
-      // Fall back to title sort if field doesn't exist
-      $query->sort('title', $sort_direction);
-    }
     
     $nids = $query->execute();
     $entities = $storage->loadMultiple($nids);

@@ -29,12 +29,12 @@ forseti_content.safety_map:
     no_cache: TRUE
 
 forseti_content.talk_with_forseti:
-  path: '/talk-with-forseti'
+  path: '/talk-with-forseti_content'
   defaults:
     _controller: '\Drupal\forseti_content\Controller\ForsetiPagesController::talkWithForseti'
     _title: 'Talk with Forseti'
   requirements:
-    _custom_access: 'forseti_content.authenticated_user_access:access'
+    _user_is_logged_in: 'TRUE'
   options:
     no_cache: TRUE
 
@@ -51,6 +51,22 @@ forseti_content.how_it_works:
   defaults:
     _controller: '\Drupal\forseti_content\Controller\ForsetiPagesController::howItWorks'
     _title: 'How It Works'
+  requirements:
+    _permission: 'access content'
+
+forseti_content.roadmap:
+  path: '/roadmap'
+  defaults:
+    _controller: '\Drupal\forseti_content\Controller\ForsetiPagesController::roadmap'
+    _title: 'Project Roadmaps'
+  requirements:
+    _permission: 'access content'
+
+forseti_content.roadmap_project:
+  path: '/roadmap/{project_id}'
+  defaults:
+    _controller: '\Drupal\forseti_content\Controller\ForsetiPagesController::roadmapProject'
+    _title: 'Project Roadmap'
   requirements:
     _permission: 'access content'
 
