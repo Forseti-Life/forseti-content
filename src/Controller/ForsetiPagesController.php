@@ -669,22 +669,22 @@ class ForsetiPagesController extends ControllerBase {
       '#why_join_title' => $this->t('Why Join?'),
       '#benefits' => [
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Stay Informed'),
           'description' => $this->t('Get notified when you enter areas with elevated safety concerns based on your current geographic location and situational context, plus receive weekly safety summaries.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Connect with Neighbors'),
           'description' => $this->t('Join neighborhood watch groups, coordinate safety efforts, and build stronger community bonds.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Make an Impact'),
           'description' => $this->t('Report incidents, validate AI predictions, and contribute to the safety intelligence that protects your community.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Learn & Grow'),
           'description' => $this->t('Access safety resources, attend community events, and participate in safety awareness programs.'),
         ],
@@ -740,7 +740,7 @@ class ForsetiPagesController extends ControllerBase {
         'description' => $this->t('Forseti Mobile brings the power of AI monitoring directly to your smartphone. Get notified when you enter areas with elevated safety concerns, access location-based safety information with real-time crime data, and create your account to access personalized features.'),
       ],
       '#app_display' => [
-        'logo' => '/themes/custom/forseti_content/images/logos/originals/forseti_safe.png',
+        'logo' => '/themes/custom/forseti/images/logos/originals/forseti_safe.png',
         'android_icon' => '<i class="fab fa-android fa-2x text-success"></i>',
         'ios_icon' => '<i class="fab fa-apple fa-2x text-muted"></i>',
         'status' => $this->t('Beta v1.0.2 Available'),
@@ -749,37 +749,37 @@ class ForsetiPagesController extends ControllerBase {
       '#features_title' => $this->t('Current Features'),
       '#features' => [
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('User Accounts & Authentication'),
           'description' => $this->t('Create your account and login with secure production authentication. Access personalized safety features.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Location-Based Alerts'),
           'description' => $this->t('Automatic notifications when you enter high-risk areas or when incidents occur near your location.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_energized.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_energized.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Emergency SOS'),
           'description' => $this->t('One-touch access to emergency services with automatic location sharing and emergency contact notifications.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_connected.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Interactive Maps'),
           'description' => $this->t('View real-time crime incidents, safety zones, and navigate the safest routes to your destination.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Incident Reporting'),
           'description' => $this->t('Quickly report suspicious activity or incidents with photos, descriptions, and automatic GPS tagging.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_whole.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_whole.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Check-In Feature'),
           'description' => $this->t('Let friends and family know you\'re safe with automatic check-ins and location sharing.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Offline Resources'),
           'description' => $this->t('Access safety tips, emergency contacts, and critical information even without an internet connection.'),
         ],
@@ -873,22 +873,22 @@ class ForsetiPagesController extends ControllerBase {
       ],
       '#security_measures' => [
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Encryption'),
           'description' => $this->t('All data is encrypted in transit (TLS 1.3) and at rest (AES-256).'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_capable.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Authentication'),
           'description' => $this->t('Multi-factor authentication and secure password policies protect member accounts.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_free.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_free.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Access Controls'),
           'description' => $this->t('Strict role-based access with audit logging ensures data security.'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_useful.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Regular Audits'),
           'description' => $this->t('Third-party security audits and penetration testing maintain our security standards.'),
         ],
@@ -1063,7 +1063,7 @@ class ForsetiPagesController extends ControllerBase {
               <div class="col-md-6 mb-3">
                 <div class="card card-forseti_content h-100 text-center">
                   <div class="card-body">
-                    <h4><img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon"> Support</h4>
+                    <h4><img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon"> Support</h4>
                     <p class="text-muted-light">24/7 AI Monitoring</p>
                     <p class="text-muted-gray">Email support Mon-Fri 9am-6pm</p>
                   </div>
@@ -1743,7 +1743,7 @@ class ForsetiPagesController extends ControllerBase {
           'description' => $this->t('Share accurate information and report truthfully'),
         ],
         [
-          'icon' => '<img src="/themes/custom/forseti_content/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
+          'icon' => '<img src="/themes/custom/forseti/images/logos/originals/forseti_safe.png" alt="" class="forseti_content-icon">',
           'title' => $this->t('Safety First'),
           'description' => $this->t('Prioritize community safety in all interactions'),
         ],

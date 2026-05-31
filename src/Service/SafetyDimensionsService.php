@@ -37,7 +37,7 @@ class SafetyDimensionsService implements SafetyDimensionsServiceInterface {
     return [
       [
         'id' => 'safe',
-        'icon' => '/themes/custom/forseti_content/images/logos/originals/forseti_safe.png',
+        'icon' => '/themes/custom/forseti/images/logos/originals/forseti_safe.png',
         'name' => $this->t('Safe'),
         'planned_enhancement' => FALSE,
         'subtitle' => $this->t('Security & Protection'),
@@ -58,7 +58,7 @@ class SafetyDimensionsService implements SafetyDimensionsServiceInterface {
       ],
       [
         'id' => 'energized',
-        'icon' => '/themes/custom/forseti_content/images/logos/originals/forseti_energized.png',
+        'icon' => '/themes/custom/forseti/images/logos/originals/forseti_energized.png',
         'name' => $this->t('Energized'),
         'planned_enhancement' => TRUE,
         'subtitle' => $this->t('Vitality & Basic Needs'),
@@ -79,7 +79,7 @@ class SafetyDimensionsService implements SafetyDimensionsServiceInterface {
       ],
       [
         'id' => 'connected',
-        'icon' => '/themes/custom/forseti_content/images/logos/originals/forseti_connected.png',
+        'icon' => '/themes/custom/forseti/images/logos/originals/forseti_connected.png',
         'name' => $this->t('Connected'),
         'planned_enhancement' => TRUE,
         'subtitle' => $this->t('Community & Belonging'),
@@ -101,7 +101,7 @@ class SafetyDimensionsService implements SafetyDimensionsServiceInterface {
       ],
       [
         'id' => 'free',
-        'icon' => '/themes/custom/forseti_content/images/logos/originals/forseti_free.png',
+        'icon' => '/themes/custom/forseti/images/logos/originals/forseti_free.png',
         'name' => $this->t('Free'),
         'planned_enhancement' => TRUE,
         'subtitle' => $this->t('Autonomy & Rights'),
@@ -122,7 +122,7 @@ class SafetyDimensionsService implements SafetyDimensionsServiceInterface {
       ],
       [
         'id' => 'capable',
-        'icon' => '/themes/custom/forseti_content/images/logos/originals/forseti_capable.png',
+        'icon' => '/themes/custom/forseti/images/logos/originals/forseti_capable.png',
         'name' => $this->t('Capable'),
         'planned_enhancement' => TRUE,
         'subtitle' => $this->t('Mastery & Development'),
@@ -143,7 +143,7 @@ class SafetyDimensionsService implements SafetyDimensionsServiceInterface {
       ],
       [
         'id' => 'useful',
-        'icon' => '/themes/custom/forseti_content/images/logos/originals/forseti_useful.png',
+        'icon' => '/themes/custom/forseti/images/logos/originals/forseti_useful.png',
         'name' => $this->t('Useful'),
         'planned_enhancement' => TRUE,
         'subtitle' => $this->t('Purpose & Contribution'),
@@ -164,7 +164,7 @@ class SafetyDimensionsService implements SafetyDimensionsServiceInterface {
       ],
       [
         'id' => 'whole',
-        'icon' => '/themes/custom/forseti_content/images/logos/originals/forseti_whole.png',
+        'icon' => '/themes/custom/forseti/images/logos/originals/forseti_whole.png',
         'name' => $this->t('Whole'),
         'planned_enhancement' => TRUE,
         'subtitle' => $this->t('Holistic Health & Identity'),
