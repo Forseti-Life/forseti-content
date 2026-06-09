@@ -46,12 +46,6 @@ forseti_content.example_entities:
   parent: forseti_content.how_it_works
   weight: -22
 
-forseti_content.institutional:
-  title: 'Family & Institutions'
-  route_name: institutional_management.landing
-  menu_name: main
-  weight: 5
-
 job_hunter.main_menu:
   title: 'Job Hunter'
   route_name: job_hunter.dashboard

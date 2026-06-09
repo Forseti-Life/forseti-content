@@ -11,7 +11,7 @@ use Drupal\Tests\BrowserTestBase;
  * and forseti_content both defining the same top-level nav links.
  *
  * Expected top-level items (in weight order):
- *   About, How It Works, Talk with Forseti, Family & Institutions, Job Hunter
+ *   About, How It Works, Talk with Forseti, Job Hunter
  *
  * @group forseti_content
  * @group navigation
@@ -46,7 +46,6 @@ class NavigationMenuTest extends BrowserTestBase {
     'About',
     'How It Works',
     'Talk with Forseti',
-    'Family & Institutions',
     'Job Hunter',
   ];
 
