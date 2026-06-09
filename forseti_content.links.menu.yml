@@ -51,3 +51,9 @@ job_hunter.main_menu:
   route_name: job_hunter.dashboard
   menu_name: main
   weight: 10
+
+forseti_content.amisafe:
+  title: 'AmISafe'
+  route_name: amisafe.dashboard
+  menu_name: main
+  weight: 12
