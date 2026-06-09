@@ -86,12 +86,12 @@ class ForsetiPagesController extends ControllerBase {
         ],
       ],
       '#membership' => [
-        'title' => $this->t('Membership'),
-        'content' => $this->t("Forseti is a privately funded community. New members join through invitation or by application with administrative approval. We welcome members who bring value through skills (technical abilities, professional expertise, creative talents) or assets (resources, connections, infrastructure). We value diverse contributions and recognize that every member brings unique strengths."),
+        'title' => $this->t('Current Service Focus'),
+        'content' => $this->t("Forseti is currently focused on a free resume tailoring service for job seekers. Create an account, tailor resumes to job descriptions, and use Job Hunter workflows at no cost while we expand additional offerings."),
       ],
       '#cta' => [
-        'title' => $this->t('Interested in Membership?'),
-        'content' => $this->t('We\'re always looking for talented individuals and organizations who share our values and can contribute to our community. <a href="/contact" class="alert-link">Contact us</a> to learn more about membership opportunities.'),
+        'title' => $this->t('Ready to get started?'),
+        'content' => $this->t('Create a <a href="/user/register" class="alert-link">free account</a> to start tailoring your resume and managing your job search with Job Hunter.'),
       ],
       '#cache' => [
         'max-age' => 3600,
@@ -107,14 +107,14 @@ class ForsetiPagesController extends ControllerBase {
     return [
       '#theme' => 'forseti_page_how_it_works',
       '#title' => $this->t('How It Works'),
-      '#simple_answer' => $this->t('We build AI agents that represent the collective skills and talents of our community members, creating services that benefit everyone while generating income and safety for the community.'),
-      '#subtitle' => $this->t('Building AI-Powered Community Value'),
+      '#simple_answer' => $this->t('Right now, Forseti helps job seekers with free resume tailoring and Job Hunter workflows.'),
+      '#subtitle' => $this->t('Free resume tailoring for current users'),
       '#steps' => [
         [
           'number' => 1,
           'title' => $this->t('You Join'),
           'icon' => '👋',
-          'description' => $this->t('Membership is by invitation or application with administrative approval. We welcome members who are tolerant, embrace science and technology, and want to be part of a community that takes care of its own.'),
+          'description' => $this->t('Create a free account and access resume tailoring plus Job Hunter tools immediately.'),
         ],
         [
           'number' => 2,
@@ -177,7 +177,7 @@ class ForsetiPagesController extends ControllerBase {
         ],
       ],
       '#cta_buttons' => [
-        ['url' => '/contact', 'text' => $this->t('Express Interest in Membership'), 'style' => 'primary'],
+        ['url' => '/user/register', 'text' => $this->t('Create Free Account'), 'style' => 'primary'],
         ['url' => '/jobhunter', 'text' => $this->t('Try Our Services'), 'style' => 'outline-primary'],
       ],
       '#cache' => [

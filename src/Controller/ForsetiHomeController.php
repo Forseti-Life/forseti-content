@@ -59,8 +59,8 @@ class ForsetiHomeController extends ControllerBase {
         <div class="container py-5">
           <div class="row">
             <div class="col-lg-8 mx-auto text-center">
-              <h1 class="display-4 mb-4 text-cyan">Forseti: AI-Powered Community Services</h1>
-              <p class="lead mb-4">Building automated services that save time and improve outcomes for our community members.</p>
+              <h1 class="display-4 mb-4 text-cyan">Forseti: Free Resume Tailoring (Current Focus)</h1>
+              <p class="lead mb-4">Right now Forseti is focused on helping job seekers tailor resumes to real job descriptions at no cost.</p>
             </div>
           </div>
         </div>
@@ -100,7 +100,7 @@ class ForsetiHomeController extends ControllerBase {
               
               <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
                 <a href="/how-it-works" class="btn btn-outline-primary">Learn How It Works</a>
-                <a href="/contact" class="btn btn-outline-primary">Contact Us</a>
+                <a href="/user/register" class="btn btn-outline-primary">Create Free Account</a>
               </div>
             </div>
           </div>
